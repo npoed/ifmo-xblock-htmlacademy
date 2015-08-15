@@ -33,4 +33,9 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: Internet :: WWW/HTTP',
     ],
+    entry_points={
+        'xblock.v1': [
+             'xblock_htmlacademy = xblock_htmlacademy:HTMLAcademyXBlock',
+        ]
+    },
 )
