@@ -17,11 +17,10 @@
     <div class="ifmo-xblock-content problem">
         {{student_state}}
     </div>
-
-    <div>
-        {% if is_staff %}
-            {{ check_by_academy_url }}
-        {% endif %}
+    {% if is_staff %}
+    <div style="margin-top: 10px">
+        <input type="text" value="{{ check_by_academy_url }}" style="width: 100%" disabled="disabled"/>
     </div>
+    {% endif %}
 
 </section>

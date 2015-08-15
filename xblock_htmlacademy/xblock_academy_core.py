@@ -66,13 +66,13 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     def get_score(self):
         return {
-            'score': self.points * self.weight,
+            'score': self._get_points() * self.weight,
             'total': self.weight,
         }
 
     def max_score(self):
         return self.weight
-    
+
     #==================================================================================================================#
 
     @XBlock.json_handler
@@ -124,9 +124,6 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                 break
 
         state['history'] = history
-        state['points'] = points_earned
-        state['attempts'] = int(state['attempts']) + 1
-
         s.state = json.dumps(state)
         s.save()
 
@@ -146,8 +143,6 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     @XBlock.json_handler  # Manual pressing
     def check_lab(self, data, suffix):
-        self.attempts += 1
-
         user_email = self.runtime.get_real_user(self.runtime.anonymous_student_id).email
         ext_response = self._do_external_request(user_email, self.iteration_id)
 
@@ -166,9 +161,19 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         # msg = "Your total score: %s" % (points_earned,)
         # status = 'incorrect' if points_earned == 0 else 'correct' if points_earned == 1 else 'partially'
 
-        self.points = points_earned
-
         return json.dumps(self._get_student_context())
+
+    def _get_points(self):
+        array = json.loads(self.history)
+        if len(array) > 0:
+            history = array[-1]
+            return history[history.keys()[0]]
+        else:
+            return 0
+
+    def _get_attempts(self):
+        history = json.loads(self.history)
+        return len(history)
 
     #==================================================================================================================#
 
@@ -181,7 +186,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                         'text': self.description,
                     },
                     'score': {
-                        'earned': self.points * self.weight,
+                        'earned': self._get_points() * self.weight,
                         'max': self.weight,
                         'string': self._get_score_string(),
                     },
@@ -197,8 +202,8 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     def _get_score_string(self):
         result = ''
         if self.weight is not None and self.weight != 0:
-            if self.attempts > 0:
-                result = '(%s/%s points)' % (self.points * self.weight, self.weight,)
+            if self._get_attempts() > 0:
+                result = '(%s/%s points)' % (self._get_points() * self.weight, self.weight,)
             else:
                 result = '(%s points possible)' % (self.weight,)
         return result

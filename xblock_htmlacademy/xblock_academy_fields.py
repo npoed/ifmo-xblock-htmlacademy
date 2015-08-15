@@ -54,16 +54,6 @@ class HTMLAcademyXBlockFields(object):
         default="f*n,2Ch"
     )
 
-    points = Float(
-        scope=Scope.user_state,
-        default=0,
-    )
-
-    attempts = Integer(
-        scope=Scope.user_state,
-        default=0,
-    )
-
     """
     [{"10.05.2015 10:00:00" : 0.07}, {"10.05.2015 10:05:00" : 0.14}]
     """
