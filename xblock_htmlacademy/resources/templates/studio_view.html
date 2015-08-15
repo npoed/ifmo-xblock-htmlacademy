@@ -14,27 +14,6 @@
 
                 <li class="field comp-setting-entry">
                     <div class="wrapper-comp-setting">
-                        <label class="label setting-label">Course name</label>
-                        <input class="input setting-input" type="text" name="course_name" value="<%= course_name %>" />
-                    </div>
-                </li>
-
-                <li class="field comp-setting-entry">
-                    <div class="wrapper-comp-setting">
-                        <label class="label setting-label">Course short name</label>
-                        <input class="input setting-input" type="text" name="course_short_name" value="<%= course_short_name %>" />
-                    </div>
-                </li>
-
-                <li class="field comp-setting-entry">
-                    <div class="wrapper-comp-setting">
-                        <label class="label setting-label">Course element</label>
-                        <input class="input setting-input" type="text" name="course_element" value="<%= course_element %>" />
-                    </div>
-                </li>
-
-                <li class="field comp-setting-entry">
-                    <div class="wrapper-comp-setting">
                         <label class="label setting-label">Weight</label>
                         <input class="input setting-input" type="text" name="points" value="<%= points %>" />
                     </div>
@@ -45,6 +24,54 @@
                         <label class="label setting-label">Description</label>
                         <textarea class="input setting-input" name="content"><%= content %></textarea>
                     </div>
+                </li>
+
+                <li class="field comp-setting-entry">
+                    <div class="wrapper-comp-setting">
+                        <label class="label setting-label">Course element</label>
+                        <input class="input setting-input" type="text" name="course_element" value="<%= course_element %>" />
+                    </div>
+                    <span class="tip setting-help">Номер раздела в курсе</span>
+                </li>
+
+                <li class="field comp-setting-entry">
+                    <div class="wrapper-comp-setting">
+                        <label class="label setting-label">Course name</label>
+                        <input class="input setting-input" type="text" name="course_name" value="<%= course_name %>" />
+                    </div>
+                    <span class="tip setting-help">Название текущей итерации курса</span>
+                </li>
+
+                <li class="field comp-setting-entry">
+                    <div class="wrapper-comp-setting">
+                        <label class="label setting-label">Iteration ID</label>
+                        <input class="input setting-input" type="text" name="iteration_id" value="<%= iteration_id %>" />
+                    </div>
+                    <span class="tip setting-help">Используется в api, необходимо получить в админке академии</span>
+                </li>
+
+                <li class="field comp-setting-entry">
+                    <div class="wrapper-comp-setting">
+                        <label class="label setting-label">Lab URL</label>
+                        <input class="input setting-input" type="text" name="lab_url" value="<%= lab_url %>" />
+                    </div>
+                    <span class="tip setting-help">URL для перехода в академию</span>
+                </li>
+
+                <li class="field comp-setting-entry">
+                    <div class="wrapper-comp-setting">
+                        <label class="label setting-label">API URL</label>
+                        <input class="input setting-input" type="text" name="api_url" value="<%= api_url %>" />
+                    </div>
+                    <span class="tip setting-help">URL для запроса в API академии</span>
+                </li>
+
+                <li class="field comp-setting-entry">
+                    <div class="wrapper-comp-setting">
+                        <label class="label setting-label">Secret key</label>
+                        <input class="input setting-input" type="text" name="secret_key" value="<%= secret_key %>" />
+                    </div>
+                    <span class="tip setting-help">Ключ для хеширования запросов</span>
                 </li>
 
             </ul>

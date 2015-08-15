@@ -18,4 +18,10 @@
         {{student_state}}
     </div>
 
+    <div>
+        {% if is_staff %}
+            {{ check_by_academy_url }}
+        {% endif %}
+    </div>
+
 </section>

@@ -4,6 +4,11 @@ from xblock.core import XBlock
 from xblock.fragment import Fragment
 from xblock_academy_fields import HTMLAcademyXBlockFields
 from xblock_academy_resources import XBlockResources
+import hashlib
+import time
+
+from lms.djangoapps.courseware.models import StudentModule
+from opaque_keys.edx.keys import UsageKey
 
 import json
 import requests
@@ -18,9 +23,6 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     # Use this unless submissions api is used
     always_recalculate_grades = True
 
-    ACADEMY_API_URL = 'https://htmlacademy.ru/api/get_progress?course={short_name}&ifmo_user_id={user}'
-    ACADEMY_LAB_URL = 'https://htmlacademy.ru/{name}/{element}'
-
     def student_view(self, context):
 
         if context is None:
@@ -34,16 +36,19 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         fragment.initialize_js('HTMLAcademyXBlockStudentView')
         return fragment
 
-    def studio_view(self, context):
+    def studio_view(self, context):  # done
 
         template_context = {
             'metadata': json.dumps({
                 'display_name': self.display_name,
                 'course_name': self.course_name,
-                'course_short_name': self.course_short_name,
+                'iteration_id': self.iteration_id,
                 'course_element': self.course_element,
                 'content': self.description,
                 'points': self.weight,
+                'lab_url': self.lab_url,
+                'api_url': self.api_url,
+                'secret_key': self.secret_key
             }),
         }
 
@@ -67,23 +72,26 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     def max_score(self):
         return self.weight
-
+    
     #==================================================================================================================#
 
     @XBlock.json_handler
-    def save_settings(self, data, suffix):
+    def save_settings(self, data, suffix):  # done
         self.display_name = data.get('display_name')
         self.course_name = data.get('course_name')
-        self.course_short_name = data.get('course_short_name')
+        self.iteration_id = data.get('iteration_id')
         self.course_element = data.get('course_element')
         self.description = data.get('content')
         self.weight = data.get('points')
+        self.lab_url = data.get('lab_url')
+        self.api_url = data.get('api_url')
+        self.secret_key = data.get('secret_key')
         return '{}'
 
     @XBlock.handler
-    def start_lab(self, request, suffix=''):
+    def start_lab(self, request, suffix=''):  # done
 
-        html_academy_link = self.ACADEMY_LAB_URL.format(
+        html_academy_link = self.lab_url.format(
             name=self.course_name,
             element=self.course_element,
         )
@@ -91,11 +99,57 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         return HTTPFound(location=html_academy_link)
 
     @XBlock.json_handler
+    def check_by_academy(self, data, suffix=''):
+        if 'email' not in data:
+            return
+
+        email = data['email']
+        r = UsageKey.from_string(self.location.__unicode__())
+        s = StudentModule.objects.get(student__email=email,
+                          module_state_key=r)
+
+        state = json.loads(s.state)
+        history = state['history']
+
+        ext_response = self._do_external_request(email, self.iteration_id)
+
+        points_earned = 0
+        # Find course we are checking
+        for element in ext_response:
+            # FIXME Pretty brave assumption, make it error-prone
+            if int(self.course_element) == element['course_number']:
+                # Ew, gross!
+                points_earned = round(float(element['tasks_completed']) / element['tasks_total'], 2)
+                history = json.dumps(self._update_state(history, element['tasks_progress'], points_earned))
+                break
+
+        state['history'] = history
+        state['points'] = points_earned
+        state['attempts'] = int(state['attempts']) + 1
+
+        s.state = json.dumps(state)
+        s.save()
+
+    def _update_state(self, state, tasks_progress, new_score):
+        states = json.loads(state)
+        max_date_in_progress = time.strptime(max(tasks_progress, key=lambda x: time.strptime(x['date'], '%Y-%m-%d %H:%M:%S'))['date'], '%Y-%m-%d %H:%M:%S')
+
+        if len(states) > 0:
+            max_date_in_hist = time.strptime(max(states, key=lambda x: time.strptime(x.keys()[0], '%Y-%m-%d %H:%M:%S')).keys()[0], '%Y-%m-%d %H:%M:%S')
+            if max_date_in_progress > max_date_in_hist:
+                states.append({time.strftime('%Y-%m-%d %H:%M:%S', max_date_in_progress): new_score})
+        else:
+            if len(tasks_progress) > 0:
+                states.append({time.strftime('%Y-%m-%d %H:%M:%S', max_date_in_progress): new_score})
+
+        return states
+
+    @XBlock.json_handler  # Manual pressing
     def check_lab(self, data, suffix):
         self.attempts += 1
 
-        username = User.objects.get(id=self.scope_ids.user_id).username
-        ext_response = self._do_external_request(username, self.course_short_name)
+        user_email = self.runtime.get_real_user(self.runtime.anonymous_student_id).email
+        ext_response = self._do_external_request(user_email, self.iteration_id)
 
         points_earned = 0
 
@@ -104,7 +158,9 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
             # FIXME Pretty brave assumption, make it error-prone
             if int(self.course_element) == element['course_number']:
                 # Ew, gross!
-                points_earned = float(element['tasks_completed']) / element['tasks_total']
+                points_earned = round(float(element['tasks_completed']) / element['tasks_total'], 2)
+                self.history = json.dumps(self._update_state(self.history, element['tasks_progress'], points_earned))
+
                 break
 
         # msg = "Your total score: %s" % (points_earned,)
@@ -134,7 +190,8 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
             'is_staff': getattr(self.xmodule_runtime, 'user_is_staff', False),
 
             # This is probably studio, find out some more ways to determine this
-            'is_studio': self.scope_ids.user_id is None
+            'is_studio': self.scope_ids.user_id is None,
+            'check_by_academy_url': self.runtime.handler_url(self, 'check_by_academy', thirdparty=True)
         }
 
     def _get_score_string(self):
@@ -146,8 +203,11 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                 result = '(%s points possible)' % (self.weight,)
         return result
 
-    def _do_external_request(self, sso_id=0, short_name=''):
-        url = self.ACADEMY_API_URL.format(user=sso_id, short_name=short_name)
+    def _do_external_request(self, user_email, iteration_id):  # done
+        m = hashlib.md5()
+        m.update('%s:%s:%s' % (iteration_id, user_email, self.secret_key))
+        h = m.hexdigest()
+        url = self.api_url.format(email=user_email, iterationID=iteration_id, hash=h)
         try:
             request = requests.post(url)
         except Exception:
