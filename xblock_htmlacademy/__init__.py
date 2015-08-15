@@ -1,0 +1,1 @@
+from xblock_academy_core import HTMLAcademyXBlock

@@ -1,0 +1,21 @@
+<section class="ifmo-xblock-student xmodule_display xmodule_CapaModule " data-student-state="{{student_state}}" {% if is_staff %}data-is-staff="True"{% endif %}>
+
+    <script type="text/template" class="ifmo-xblock-template-base">
+
+        <h2 class="problem-header"><%= meta.name %></h2>
+
+        <div class="problem-progress"><%= score.string %></div>
+
+        <div><%= meta.text %></div>
+
+        <div class="action">
+            <input type="button" class="ant-start-lab" value="Start" />
+            <input type="button" class="ant-check-lab" value="Check" />
+        </div>
+    </script>
+
+    <div class="ifmo-xblock-content problem">
+        {{student_state}}
+    </div>
+
+</section>
