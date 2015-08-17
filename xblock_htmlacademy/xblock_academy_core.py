@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
+from mongoengine.queryset import DoesNotExist
 from webob.exc import HTTPFound
+from webob import Response
 from xblock.core import XBlock
 from xblock.fragment import Fragment
 from xblock_academy_fields import HTMLAcademyXBlockFields
@@ -7,6 +9,7 @@ from xblock_academy_resources import XBlockResources
 import hashlib
 import time
 
+from django.http import HttpResponse
 from lms.djangoapps.courseware.models import StudentModule
 from opaque_keys.edx.keys import UsageKey
 
@@ -98,15 +101,28 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
         return HTTPFound(location=html_academy_link)
 
-    @XBlock.json_handler
-    def check_by_academy(self, data, suffix=''):
-        if 'email' not in data:
-            return
+    @XBlock.handler
+    def check_by_academy(self, request, suffix=''):
+        email = ""
+        hashs = ""
 
-        email = data['email']
+        try:
+            email = request.GET['email']
+            hashs = request.GET['hash']
+        except Exception:
+            return Response("email and hash parameters required")
+
+        hash_to_be = self._md5("%s:%s" % (email, self.secret_key))
+        if hash_to_be != hashs:
+            return Response("Wrong hash")
+
         r = UsageKey.from_string(self.location.__unicode__())
-        s = StudentModule.objects.get(student__email=email,
+        s = None
+        try:
+            s = StudentModule.objects.get(student__email=email,
                           module_state_key=r)
+        except Exception:
+            return Response("User not found")
 
         state = json.loads(s.state)
         history = state['history']
@@ -126,6 +142,8 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         state['history'] = history
         s.state = json.dumps(state)
         s.save()
+
+        return Response("OK")
 
     def _update_state(self, state, tasks_progress, new_score):
         states = json.loads(state)
@@ -209,9 +227,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         return result
 
     def _do_external_request(self, user_email, iteration_id):  # done
-        m = hashlib.md5()
-        m.update('%s:%s:%s' % (iteration_id, user_email, self.secret_key))
-        h = m.hexdigest()
+        h = self._md5('%s:%s:%s' % (iteration_id, user_email, self.secret_key))
         url = self.api_url.format(email=user_email, iterationID=iteration_id, hash=h)
         try:
             request = requests.post(url)
@@ -224,3 +240,9 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         except Exception:
             raise Exception('Cannot parse response from HTMLAcademy')
         return response_json
+
+    @staticmethod
+    def _md5(inputs):
+        m = hashlib.md5()
+        m.update(inputs)
+        return m.hexdigest()
