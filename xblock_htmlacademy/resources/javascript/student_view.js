@@ -1,8 +1,7 @@
-function HTMLAcademyXBlockStudentView(runtime, element)
-{
-
+function HTMLAcademyXBlockStudentView(runtime, element) {
     var checkUrl = runtime.handlerUrl(element, 'check_lab');
     var startUrl = runtime.handlerUrl(element, 'start_lab');
+    var staffInfoUrl = runtime.handlerUrl(element, 'staff_info');
 
     function enable_controls(enabled)
     {
@@ -51,8 +50,36 @@ function HTMLAcademyXBlockStudentView(runtime, element)
         });
     }
 
+    function renderStaffInfo(data){
+        var template = _.template($(element).find("#staff-info-main").text());
+        $("#staff-info").html(template(data));
+
+        $(element).find("#ifmo-xblock-submit").click(function(event){
+            event.preventDefault();
+            $.ajax({
+                url: staffInfoUrl,
+                type: "POST",
+                success: renderStaffInfo,
+                data: JSON.stringify({"user": $(element).find("#ifmo-xblock-username").val()})
+            });
+        });
+    }
+
     $(function(){
         init_xblock($, _);
+        var block = $(element).find(".ifmo-xblock-student");
+        var is_staff = block.attr("data-is-staff") == "True";
+        if (is_staff) {
+            $('.instructor-info-action').leanModal();
+            $('.instructor-info-action-info').leanModal().on('click', function(){
+                $.ajax({
+                    url: staffInfoUrl,
+                    type: "POST",
+                    success: renderStaffInfo,
+                    data: JSON.stringify({})
+                });
+            });
+        }
     });
 
 }

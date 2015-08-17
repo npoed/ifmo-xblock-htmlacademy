@@ -101,6 +101,25 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
         return HTTPFound(location=html_academy_link)
 
+    @XBlock.json_handler
+    def staff_info(self, data, suffix=''):
+        assert self._is_staff()
+        outputs = ""
+        if data != {}:
+            if 'user' in data:
+                user = data['user']
+                r = UsageKey.from_string(self.location.__unicode__())
+                s = None
+                try:
+                    s = StudentModule.objects.get(student__username=user,
+                          module_state_key=r)
+                    outputs = s.state
+
+                except Exception:
+                    outputs = "User %s didn't participate" % user
+
+        return {'data': outputs}
+
     @XBlock.handler
     def check_by_academy(self, request, suffix=''):
         email = ""
@@ -196,7 +215,8 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     #==================================================================================================================#
 
     def _get_student_context(self, user=None):
-        return {
+        context = {
+            'id': self.location.name.replace('.', '_'),
             'student_state': json.dumps(
                 {
                     'meta': {
@@ -214,8 +234,20 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
             # This is probably studio, find out some more ways to determine this
             'is_studio': self.scope_ids.user_id is None,
-            'check_by_academy_url': self.runtime.handler_url(self, 'check_by_academy', thirdparty=True)
         }
+
+        if self._is_staff():
+            context['check_by_academy_url'] = self.runtime.handler_url(self, 'check_by_academy', thirdparty=True)
+            context['state'] = json.dumps({
+                'course_name': self.course_name,
+                'iteration_id': self.iteration_id,
+                'course_element': self.course_element,
+                'weight': self.weight,
+                'lab_url': self.lab_url,
+                'api_url': self.api_url
+            }, indent=2)
+
+        return context
 
     def _get_score_string(self):
         result = ''
@@ -246,3 +278,6 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         m = hashlib.md5()
         m.update(inputs)
         return m.hexdigest()
+
+    def _is_staff(self):
+        return getattr(self.xmodule_runtime, 'user_is_staff', False)
