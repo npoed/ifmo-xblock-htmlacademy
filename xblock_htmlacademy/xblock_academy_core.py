@@ -1,20 +1,18 @@
-from django.contrib.auth.models import User
-from mongoengine.queryset import DoesNotExist
+import datetime
+
 from webob.exc import HTTPFound
 from webob import Response
 from xblock.core import XBlock
 from xblock.fragment import Fragment
 from xblock_academy_fields import HTMLAcademyXBlockFields
 from xblock_academy_resources import XBlockResources
-import hashlib
-import time
-
-from django.http import HttpResponse
+from xmodule.util.duedate import get_extended_due_date
 from lms.djangoapps.courseware.models import StudentModule
 from opaque_keys.edx.keys import UsageKey
-
+import hashlib
 import json
 import requests
+import pytz
 
 
 class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
@@ -39,7 +37,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         fragment.initialize_js('HTMLAcademyXBlockStudentView')
         return fragment
 
-    def studio_view(self, context):  # done
+    def studio_view(self, context):
 
         template_context = {
             'metadata': json.dumps({
@@ -79,7 +77,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     #==================================================================================================================#
 
     @XBlock.json_handler
-    def save_settings(self, data, suffix):  # done
+    def save_settings(self, data, suffix):
         self.display_name = data.get('display_name')
         self.course_name = data.get('course_name')
         self.iteration_id = data.get('iteration_id')
@@ -92,7 +90,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         return '{}'
 
     @XBlock.handler
-    def start_lab(self, request, suffix=''):  # done
+    def start_lab(self, request, suffix=''):
 
         html_academy_link = self.lab_url.format(
             name=self.course_name,
@@ -165,16 +163,24 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         return Response("OK")
 
     def _update_state(self, state, tasks_progress, new_score):
+        """
+        state - current state from StudentModule
+        tasks_progress - raw data from HTML Academy
+        new_score - new rating from HTML Academy
+        """
         states = json.loads(state)
-        max_date_in_progress = time.strptime(max(tasks_progress, key=lambda x: time.strptime(x['date'], '%Y-%m-%d %H:%M:%S'))['date'], '%Y-%m-%d %H:%M:%S')
+        max_date_in_progress = datetime.datetime.strptime(max(tasks_progress, key=lambda x: datetime.datetime.strptime(x['date'], '%Y-%m-%d %H:%M:%S'))['date'], '%Y-%m-%d %H:%M:%S')
 
-        if len(states) > 0:
-            max_date_in_hist = time.strptime(max(states, key=lambda x: time.strptime(x.keys()[0], '%Y-%m-%d %H:%M:%S')).keys()[0], '%Y-%m-%d %H:%M:%S')
-            if max_date_in_progress > max_date_in_hist:
-                states.append({time.strftime('%Y-%m-%d %H:%M:%S', max_date_in_progress): new_score})
-        else:
-            if len(tasks_progress) > 0:
-                states.append({time.strftime('%Y-%m-%d %H:%M:%S', max_date_in_progress): new_score})
+        if len(states) > 0:  # There are elements in history
+            max_date_in_hist = datetime.datetime.strptime(max(states, key=lambda x: datetime.datetime.strptime(x.keys()[0], '%Y-%m-%d %H:%M:%S')).keys()[0], '%Y-%m-%d %H:%M:%S')
+            if max_date_in_progress > max_date_in_hist:  # From HTML Academy is new rating
+                if self._allow_checking(max_date_in_progress):
+                    states.append({max_date_in_progress.strftime('%Y-%m-%d %H:%M:%S'): new_score})
+
+        else:  # There are no elements in history
+            if len(tasks_progress) > 0:  # There are some history from HTML Academy
+                if self._allow_checking(max_date_in_progress):
+                    states.append({max_date_in_progress.strftime('%Y-%m-%d %H:%M:%S'): new_score})
 
         return states
 
@@ -234,6 +240,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
             # This is probably studio, find out some more ways to determine this
             'is_studio': self.scope_ids.user_id is None,
+            'allow_checking': self._allow_checking_now()
         }
 
         if self._is_staff():
@@ -258,7 +265,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                 result = '(%s points possible)' % (self.weight,)
         return result
 
-    def _do_external_request(self, user_email, iteration_id):  # done
+    def _do_external_request(self, user_email, iteration_id):
         h = self._md5('%s:%s:%s' % (iteration_id, user_email, self.secret_key))
         url = self.api_url.format(email=user_email, iterationID=iteration_id, hash=h)
         try:
@@ -281,3 +288,22 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     def _is_staff(self):
         return getattr(self.xmodule_runtime, 'user_is_staff', False)
+
+    def _allow_checking_now(self):
+        due = get_extended_due_date(self)
+        if due is not None:
+            return self._now() < due
+        return True
+
+    def _allow_checking(self, dt):
+        dt = dt.replace(tzinfo=pytz.utc)  # Let it be...
+        due = get_extended_due_date(self)
+        if due is not None:
+            return dt < due
+        return True
+
+    def _now(self):
+        """
+        Get current date and time.
+        """
+        return datetime.datetime.utcnow().replace(tzinfo=pytz.utc)

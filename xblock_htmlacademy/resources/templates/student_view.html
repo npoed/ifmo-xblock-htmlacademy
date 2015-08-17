@@ -8,10 +8,12 @@
 
         <div><%= meta.text %></div>
 
+        {% if allow_checking %}
         <div class="action">
             <input type="button" class="ant-start-lab" value="Start" />
             <input type="button" class="ant-check-lab" value="Check" />
         </div>
+        {% endif %}
     </script>
 
     <div class="ifmo-xblock-content problem">
