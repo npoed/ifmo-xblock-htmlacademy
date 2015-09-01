@@ -10,6 +10,7 @@
                         <label class="label setting-label">Display name</label>
                         <input class="input setting-input" type="text" name="display_name" value="<%= display_name %>" />
                     </div>
+                    <span class="tip setting-help">Отображаемое имя</span>
                 </li>
 
                 <li class="field comp-setting-entry">
@@ -17,6 +18,7 @@
                         <label class="label setting-label">Weight</label>
                         <input class="input setting-input" type="text" name="points" value="<%= points %>" />
                     </div>
+                    <span class="tip setting-help">Вес</span>
                 </li>
 
                 <li class="field comp-setting-entry">
@@ -24,6 +26,7 @@
                         <label class="label setting-label">Description</label>
                         <textarea class="input setting-input" name="content"><%= content %></textarea>
                     </div>
+                    <span class="tip setting-help">Текстовое описание</span>
                 </li>
 
                 <li class="field comp-setting-entry">
@@ -31,7 +34,7 @@
                         <label class="label setting-label">Course element</label>
                         <input class="input setting-input" type="text" name="course_element" value="<%= course_element %>" />
                     </div>
-                    <span class="tip setting-help">Номер раздела в курсе</span>
+                    <span class="tip setting-help">Номер раздела в курсе (http://npoed.htmlacademy.ru/{Course name}/course/{Course element})</span>
                 </li>
 
                 <li class="field comp-setting-entry">
@@ -39,7 +42,7 @@
                         <label class="label setting-label">Course name</label>
                         <input class="input setting-input" type="text" name="course_name" value="<%= course_name %>" />
                     </div>
-                    <span class="tip setting-help">Название текущей итерации курса</span>
+                    <span class="tip setting-help">Название текущей итерации курса (http://npoed.htmlacademy.ru/{Course name}/course/{Course element})</span>
                 </li>
 
                 <li class="field comp-setting-entry">
@@ -47,7 +50,7 @@
                         <label class="label setting-label">Iteration ID</label>
                         <input class="input setting-input" type="text" name="iteration_id" value="<%= iteration_id %>" />
                     </div>
-                    <span class="tip setting-help">Используется в api, необходимо получить в админке академии</span>
+                    <span class="tip setting-help">Используется в api, необходимо получить в админке академии (по смыслу совпадает с Course name).</span>
                 </li>
 
                 <li class="field comp-setting-entry">
@@ -55,7 +58,7 @@
                         <label class="label setting-label">Lab URL</label>
                         <input class="input setting-input" type="text" name="lab_url" value="<%= lab_url %>" />
                     </div>
-                    <span class="tip setting-help">URL для перехода в академию</span>
+                    <span class="tip setting-help">URL для перехода в академию. Должен содержать {name} и {element} (https://npoed.htmlacademy.ru/{name}/course/{element}).</span>
                 </li>
 
                 <li class="field comp-setting-entry">
@@ -63,7 +66,7 @@
                         <label class="label setting-label">API URL</label>
                         <input class="input setting-input" type="text" name="api_url" value="<%= api_url %>" />
                     </div>
-                    <span class="tip setting-help">URL для запроса в API академии</span>
+                    <span class="tip setting-help">URL для запроса в API академии. Должен содержать {email}, {iterationID} и {hash} (https://npoed.htmlacademy.ru/api/getprogress?user_id={email}&module_id={iterationID}&hash={hash}).</span>
                 </li>
 
                 <li class="field comp-setting-entry">
