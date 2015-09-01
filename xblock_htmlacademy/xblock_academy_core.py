@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import datetime
 
 from webob.exc import HTTPFound
@@ -34,6 +35,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         fragment = Fragment()
         fragment.add_content(self.load_template('student_view.html', context))
         fragment.add_javascript(self.load_js('student_view.js'))
+        fragment.add_css(self.load_css('lms_view.css'))
         fragment.initialize_js('HTMLAcademyXBlockStudentView')
         return fragment
 
@@ -114,7 +116,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                     outputs = s.state
 
                 except Exception:
-                    outputs = "User %s didn't participate" % user
+                    outputs = "Пользователь %s не просматривал задание" % user
 
         return {'data': outputs}
 
@@ -144,14 +146,15 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         state = json.loads(s.state)
         history = state['history']
 
-        ext_response = self._do_external_request(email, self.iteration_id)
+        try:
+            ext_response = self._do_external_request(email, self.iteration_id)
+        except Exception as e:
+            return Response(e.message)
 
         points_earned = 0
         # Find course we are checking
         for element in ext_response:
-            # FIXME Pretty brave assumption, make it error-prone
             if int(self.course_element) == element['course_number']:
-                # Ew, gross!
                 points_earned = round(float(element['tasks_completed']) / element['tasks_total'], 2)
                 history = json.dumps(self._update_state(history, element['tasks_progress'], points_earned))
                 break
@@ -187,22 +190,23 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     @XBlock.json_handler  # Manual pressing
     def check_lab(self, data, suffix):
         user_email = self.runtime.get_real_user(self.runtime.anonymous_student_id).email
-        ext_response = self._do_external_request(user_email, self.iteration_id)
+
+        try:
+            ext_response = self._do_external_request(user_email, self.iteration_id)
+        except Exception as e:
+            context = self._get_student_context()
+            context['error'] = e.message
+            return json.dumps(context)
 
         points_earned = 0
 
         # Find course we are checking
         for element in ext_response:
-            # FIXME Pretty brave assumption, make it error-prone
             if int(self.course_element) == element['course_number']:
-                # Ew, gross!
                 points_earned = round(float(element['tasks_completed']) / element['tasks_total'], 2)
                 self.history = json.dumps(self._update_state(self.history, element['tasks_progress'], points_earned))
 
                 break
-
-        # msg = "Your total score: %s" % (points_earned,)
-        # status = 'incorrect' if points_earned == 0 else 'correct' if points_earned == 1 else 'partially'
 
         return json.dumps(self._get_student_context())
 
@@ -240,7 +244,9 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
             # This is probably studio, find out some more ways to determine this
             'is_studio': self.scope_ids.user_id is None,
-            'allow_checking': self._allow_checking_now()
+            'allow_checking': self._allow_checking_now(),
+            'error': '',
+
         }
 
         if self._is_staff():
@@ -260,9 +266,9 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         result = ''
         if self.weight is not None and self.weight != 0:
             if self._get_attempts() > 0:
-                result = '(%s/%s points)' % (self._get_points() * self.weight, self.weight,)
+                result = '(%s/%s баллов)' % (self._get_points() * self.weight, self.weight,)
             else:
-                result = '(%s points possible)' % (self.weight,)
+                result = '(%s возможный балл)' % (self.weight,)
         return result
 
     def _do_external_request(self, user_email, iteration_id):
@@ -296,7 +302,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         return True
 
     def _allow_checking(self, dt):
-        dt = dt.replace(tzinfo=pytz.utc)  # Let it be...
+        dt = dt.replace(tzinfo=pytz.utc)
         due = get_extended_due_date(self)
         if due is not None:
             return dt < due

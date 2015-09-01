@@ -39,7 +39,12 @@ function HTMLAcademyXBlockStudentView(runtime, element) {
                 data: '{}',
                 dataType: 'json',
                 success: function(data) {
-                    render(JSON.parse(JSON.parse(data).student_state));
+                    var dataJSON = JSON.parse(data);
+                    render(JSON.parse(dataJSON.student_state));
+                    if (dataJSON.error != ''){
+                        $(".htmlacademy-error").show();
+                        $(".htmlacademy-error-text").html(dataJSON.error);
+                    }
                 },
                 error: function() {
                 },

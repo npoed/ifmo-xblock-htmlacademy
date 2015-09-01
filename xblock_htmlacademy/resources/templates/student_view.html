@@ -9,10 +9,16 @@
         <div><%= meta.text %></div>
 
         {% if allow_checking %}
-        <div class="action">
-            <input type="button" class="ant-start-lab" value="Start" />
-            <input type="button" class="ant-check-lab" value="Check" />
-        </div>
+            <div class="action">
+                <input type="button" class="ant-start-lab" value="Выполнить" />
+                <input type="button" class="ant-check-lab" value="Проверить" title="Нажмите, если Ваш рейтинг не обновился после прохождения задания"/>
+            </div>
+
+            <div class="htmlacademy-error">Возникла ошибка при обновлении Вашего рейтинга:
+                <span class="htmlacademy-error-text"></span>.<br />
+                Пожалуйста, сообщите нам об этом на <a href="mailto:openedu@cde.ifmo.ru">openedu@cde.ifmo.ru.</a>
+                Приносим свои извинения за возможные неудобства.
+            </div>
         {% endif %}
     </script>
 
