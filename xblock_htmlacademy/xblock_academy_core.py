@@ -105,7 +105,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     @XBlock.json_handler
     def staff_info(self, data, suffix=''):
         assert self._is_staff()
-        outputs = ""
+        outputs = "{}"
         if data != {}:
             if 'user' in data:
                 user = data['user']
@@ -114,10 +114,10 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                 try:
                     s = StudentModule.objects.get(student__username=user,
                           module_state_key=r)
-                    outputs = s.state
+                    outputs = json.dumps(json.loads(s.state), indent=2)
 
                 except Exception:
-                    outputs = "Пользователь %s не просматривал задание" % user
+                    outputs = u'"Пользователь %s не просматривал задание"' % user
 
         return {'data': outputs}
 

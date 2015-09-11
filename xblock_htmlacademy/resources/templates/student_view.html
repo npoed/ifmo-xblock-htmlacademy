@@ -29,13 +29,13 @@
 
 
     <div class="wrap-instructor-info">
-        <a class="instructor-info-action" href="#{{ id }}-debug-modal" id="{{id}}-debug-button">Show debug info</a>
-        <a class="instructor-info-action instructor-info-action-info" href="#{{ id }}-staff-modal" id="{{id}}-staff-button">Show staff info</a>
+        <a class="instructor-info-action" href="#{{ id }}-debug-modal" id="{{id}}-debug-button">ИНФОРМАЦИЯ ОБ ОТЛАДКЕ ДЛЯ СОТРУДНИКОВ</a>
+        <a class="instructor-info-action instructor-info-action-info" href="#{{ id }}-staff-modal" id="{{id}}-staff-button">ИСТОРИЯ ОТПРАВКИ РАБОТ НА ПРОВЕРКУ</a>
     </div>
 
     <section aria-hidden="true" class="modal staff-modal" id="{{ id }}-debug-modal" style="width: 800px">
         <div class="inner-wrapper" style="color: black">
-            <header><h2>Debug info</h2></header>
+            <header><h2>ОТЛАДКА</h2></header>
             <br/>
             <div id="debug-info">
                 <pre>{{state}}</pre>
@@ -49,10 +49,10 @@
 
     <section aria-hidden="true" class="modal staff-modal" id="{{ id }}-staff-modal" style="width: 1000px">
         <div class="inner-wrapper" style="color: black">
-            <header><h2>Staff info</h2></header>
+            <header><h2>ПРОСМОТРИТЕ ИСТОРИЮ ОТПРАВКИ РАБОТ</h2></header>
             <br/>
             <div id="staff-info">
-                <p>Please wait while data is loading...</p>
+                <p>Подождие...</p>
             </div>
         </div>
     </section>
@@ -61,7 +61,7 @@
         Пользователь:<br /><br />
         <input type="text" id="ifmo-xblock-username" /><br /><br />
         <div class="submit">
-            <button id="ifmo-xblock-submit" type="submit">Get info</button>
+            <button id="ifmo-xblock-submit" type="submit">Просмотреть историю</button>
         </div><br />
         <pre id="staff-info-data"><%= data %></pre>
     </script>
