@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from webob.exc import HTTPFound
+from webob.exc import HTTPFound, HTTPServerError
 from webob import Response
 from xblock.core import XBlock
 from xblock.fragment import Fragment
@@ -21,8 +21,6 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     icon_class = 'problem'
     has_score = True
     package = __package__
-
-    # Use this unless submissions api is used
     always_recalculate_grades = True
 
     def student_view(self, context):
@@ -93,13 +91,16 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     @XBlock.handler
     def start_lab(self, request, suffix=''):
+        if self.course_name != '' and self.course_element != '' and self.iteration_id != '':
 
-        html_academy_link = self.lab_url.format(
-            name=self.course_name,
-            element=self.course_element,
-        )
+            html_academy_link = self.lab_url.format(
+                name=self.course_name,
+                element=self.course_element,
+            )
 
-        return HTTPFound(location=html_academy_link)
+            return HTTPFound(location=html_academy_link)
+        else:
+            return HTTPServerError(explanation='Course Name, Course Element and Iteration ID fields are required!')
 
     @XBlock.json_handler
     def staff_info(self, data, suffix=''):
@@ -189,6 +190,16 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     @XBlock.json_handler  # Manual pressing
     def check_lab(self, data, suffix):
+        if self.course_name == '' or self.course_element == '' or self.iteration_id == '':
+            context = self._get_student_context()
+            context['error'] = 'Course Name, Course Element and Iteration ID fields are required!'
+            return json.dumps(context)
+
+        if self.runtime.get_real_user is None:
+            context = self._get_student_context()
+            context['error'] = 'It seems to be requested in studio!'
+            return json.dumps(context)
+
         user_email = self.runtime.get_real_user(self.runtime.anonymous_student_id).email
 
         try:
