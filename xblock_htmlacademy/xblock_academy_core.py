@@ -123,23 +123,23 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     @XBlock.handler
     def check_by_academy(self, request, suffix=''):
-        email = ""
+        login = ""
         hashs = ""
 
         try:
-            email = request.GET['email']
+            login = request.GET['login']
             hashs = request.GET['hash']
         except Exception:
-            return Response("email and hash parameters required")
+            return Response("login and hash parameters required")
 
-        hash_to_be = self._md5("%s:%s" % (email, self.secret_key))
+        hash_to_be = self._md5("%s:%s" % (login, self.secret_key))
         if hash_to_be != hashs:
             return Response("Wrong hash")
 
         r = UsageKey.from_string(self.location.__unicode__())
         s = None
         try:
-            s = StudentModule.objects.get(student__email=email,
+            s = StudentModule.objects.get(student__username=login,
                           module_state_key=r)
         except Exception:
             return Response("User not found")
@@ -148,7 +148,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         history = state['history']
 
         try:
-            ext_response = self._do_external_request(email, self.iteration_id)
+            ext_response = self._do_external_request(login, self.iteration_id)
         except Exception as e:
             return Response(e.message)
 
@@ -200,10 +200,10 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
             context['error'] = 'It seems to be requested in studio!'
             return json.dumps(context)
 
-        user_email = self.runtime.get_real_user(self.runtime.anonymous_student_id).email
+        user_login = self.runtime.get_real_user(self.runtime.anonymous_student_id).username
 
         try:
-            ext_response = self._do_external_request(user_email, self.iteration_id)
+            ext_response = self._do_external_request(user_login, self.iteration_id)
         except Exception as e:
             context = self._get_student_context()
             context['error'] = e.message
@@ -282,9 +282,9 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                 result = '(%s возможный балл)' % (self.weight,)
         return result
 
-    def _do_external_request(self, user_email, iteration_id):
-        h = self._md5('%s:%s:%s' % (iteration_id, user_email, self.secret_key))
-        url = self.api_url.format(email=user_email, iterationID=iteration_id, hash=h)
+    def _do_external_request(self, user_login, iteration_id):
+        h = self._md5('%s:%s:%s' % (iteration_id, user_login, self.secret_key))
+        url = self.api_url.format(login=user_login, iterationID=iteration_id, hash=h)
         try:
             request = requests.post(url)
         except Exception:

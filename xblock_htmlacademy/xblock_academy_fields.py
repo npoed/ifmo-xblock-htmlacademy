@@ -45,7 +45,7 @@ class HTMLAcademyXBlockFields(object):
     api_url = String(
         display_name="URL to get into API",
         scope=Scope.settings,
-        default="https://npoed.htmlacademy.ru/api/getprogress?user_id={email}&module_id={iterationID}&hash={hash}"
+        default="https://npoed.htmlacademy.ru/api/getprogress?user_id={login}&module_id={iterationID}&hash={hash}"
     )
 
     secret_key = String(
