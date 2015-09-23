@@ -157,7 +157,8 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         for element in ext_response:
             if int(self.course_element) == element['course_number']:
                 points_earned = round(float(element['tasks_completed']) / element['tasks_total'], 2)
-                history = json.dumps(self._update_state(history, element['tasks_progress'], points_earned))
+                if points_earned > 0:
+                    history = json.dumps(self._update_state(history, element['tasks_progress'], points_earned))
                 break
 
         state['history'] = history
@@ -215,7 +216,8 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         for element in ext_response:
             if int(self.course_element) == element['course_number']:
                 points_earned = round(float(element['tasks_completed']) / element['tasks_total'], 2)
-                self.history = json.dumps(self._update_state(self.history, element['tasks_progress'], points_earned))
+                if points_earned > 0:
+                    self.history = json.dumps(self._update_state(self.history, element['tasks_progress'], points_earned))
 
                 break
 
