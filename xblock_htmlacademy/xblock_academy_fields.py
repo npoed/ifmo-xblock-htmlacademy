@@ -1,4 +1,4 @@
-from xblock.fields import Scope, Integer, String, Float
+from xblock.fields import Scope, String, Float, Boolean
 
 
 class HTMLAcademyXBlockFields(object):
@@ -60,4 +60,12 @@ class HTMLAcademyXBlockFields(object):
     history = String(
         scope=Scope.user_state,
         default="[]"
+    )
+
+    """
+    Needs to create StudentModule when user press "Start" button
+    """
+    started = Boolean(
+        scope=Scope.user_state,
+        default=False
     )

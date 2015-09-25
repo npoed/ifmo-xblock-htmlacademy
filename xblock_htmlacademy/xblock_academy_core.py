@@ -91,6 +91,8 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     @XBlock.handler
     def start_lab(self, request, suffix=''):
+        self.started = True
+
         if self.course_name != '' and self.course_element != '' and self.iteration_id != '':
 
             html_academy_link = self.lab_url.format(
@@ -145,7 +147,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
             return Response("User not found")
 
         state = json.loads(s.state)
-        history = state['history']
+        history = state.get('history', '[]')
 
         try:
             ext_response = self._do_external_request(login, self.iteration_id)
