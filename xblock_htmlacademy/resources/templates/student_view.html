@@ -1,4 +1,4 @@
-<section class="ifmo-xblock-student xmodule_display xmodule_CapaModule " data-student-state="{{student_state}}" {% if is_staff %}data-is-staff="True"{% endif %}>
+<section class="ifmo-xblock-student xmodule_display xmodule_CapaModule " data-student-state="{{student_state}}" {% if is_staff %}data-is-staff="True" data-url-grades-data="{{ get_grades_data }}"{% endif %}>
 
     <script type="text/template" class="ifmo-xblock-template-base">
 
@@ -32,18 +32,21 @@
     <div class="ifmo-xblock-content problem">
         {{student_state}}
     </div>
+
     {% if is_staff %}
         {% if not is_studio %}
 
+    <hr/>
 
     <div class="wrap-instructor-info">
-        <a class="instructor-info-action" href="#{{ id }}-debug-modal" id="{{id}}-debug-button">ИНФОРМАЦИЯ ОБ ОТЛАДКЕ ДЛЯ СОТРУДНИКОВ</a>
-        <a class="instructor-info-action instructor-info-action-info" href="#{{ id }}-staff-modal" id="{{id}}-staff-button">ИСТОРИЯ ОТПРАВКИ РАБОТ НА ПРОВЕРКУ</a>
+        <a class="instructor-info-action instructor-info-action-info" href="#{{id}}-tools-modal" id="{{id}}-staff-button">Инструменты инструтора</a>
+        <a class="instructor-info-action" href="#{{ id }}-debug-modal" id="{{id}}-debug-button">Отладочная информация</a>
+        <a class="instructor-info-action" href="#{{id}}-tasks-modal" id="{{id}}-show-tasks-button">Выгрузка статистики</a>
     </div>
 
     <section aria-hidden="true" class="modal staff-modal" id="{{ id }}-debug-modal" style="width: 800px">
         <div class="inner-wrapper" style="color: black">
-            <header><h2>ОТЛАДКА</h2></header>
+            <header><h2>Отладка</h2></header>
             <br/>
             <div id="debug-info">
                 <pre>{{state}}</pre>
@@ -55,24 +58,39 @@
         </div>
     </section>
 
-    <section aria-hidden="true" class="modal staff-modal" id="{{ id }}-staff-modal" style="width: 1000px">
+    <section aria-hidden="true" class="modal staff-modal" id="{{id}}-tools-modal" style="width: 800px">
         <div class="inner-wrapper" style="color: black">
-            <header><h2>ПРОСМОТРИТЕ ИСТОРИЮ ОТПРАВКИ РАБОТ</h2></header>
-            <br/>
-            <div id="staff-info">
-                <p>Подождие...</p>
+            <header><h2>Инструменты инструктора</h2></header>
+            <div>&nbsp;</div>
+            <div>
+                <label for="{{id}}-staff-user-input">Имя пользователя: </label>
+                <input type="text" id="{{id}}-staff-user-input" name="user">
+                <input type="button" value="Получить" class="button staff-get-state-btn" id="{{id}}-staff-get-state-button"/>
+                <input type="button" value="Сбросить" class="button staff-reset-state-btn" id="{{id}}-staff-reset-state-button"/>
+                <input type="button" value="Перепроверить" class="button staff-update-state-btn" id="{{id}}-staff-update-state-button"/>
+            </div>
+            <hr/>
+            <div id="{{id}}-staff-info">
+                <p>Состояние пользователя</p>
+                <div class="staff-info-container" style="max-height: 600px; overflow-y: scroll;">
+                </div>
             </div>
         </div>
     </section>
 
-    <script type="text/template" id="staff-info-main">
-        Пользователь:<br /><br />
-        <input type="text" id="ifmo-xblock-username" /><br /><br />
-        <div class="submit">
-            <button id="ifmo-xblock-submit" type="submit">Просмотреть историю</button>
-        </div><br />
-        <pre id="staff-info-data"><%= data %></pre>
-    </script>
+    <section aria-hidden="true" class="modal staff-modal" id="{{id}}-tasks-modal" style="width: 800px">
+        <div class="inner-wrapper" style="color: black">
+            <header><h2>Выгрузка статистики</h2></header>
+            <div>&nbsp;</div>
+            <p>
+                <input type="button" value="Список оценок" onclick="window.location=$('#{{id}}-staff-info-grades-data').val()"/>
+            </p>
+            <hr/>
+            <p>
+                <label for="{{id}}-staff-info-grades-data">Список оценок:</label> <textarea id="{{id}}-staff-info-grades-data" class="staff-info-grades-data" cols="70" style="height: 60px">N/A</textarea>
+            </p>
+        </div>
+    </section>
 
         {% endif %}
     {% endif %}

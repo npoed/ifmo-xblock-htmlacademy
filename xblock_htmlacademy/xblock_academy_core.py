@@ -10,6 +10,7 @@ from xblock_academy_resources import XBlockResources
 from xmodule.util.duedate import get_extended_due_date
 from lms.djangoapps.courseware.models import StudentModule
 from opaque_keys.edx.keys import UsageKey
+from webob.exc import HTTPOk
 import hashlib
 import json
 import requests
@@ -109,19 +110,38 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         assert self._is_staff()
         outputs = "{}"
         if data != {}:
-            if 'user' in data:
-                user = data['user']
+            if 'user_login' in data:
+                user = data['user_login']
                 r = UsageKey.from_string(self.location.__unicode__())
                 s = None
                 try:
                     s = StudentModule.objects.get(student__username=user,
-                          module_state_key=r)
+                                                  module_state_key=r)
                     outputs = json.dumps(json.loads(s.state), indent=2)
 
                 except Exception:
                     outputs = u'"Пользователь %s не просматривал задание"' % user
 
         return {'data': outputs}
+
+    @XBlock.json_handler
+    def reset_user_data(self, data, suffix=''):
+        assert self._is_staff()
+        user_login = data.get('user_login')
+        try:
+            module = StudentModule.objects.get(module_state_key=self.location,
+                                               student__username=user_login)
+            module.state = '{}'
+            module.max_grade = None
+            module.grade = None
+            module.save()
+            return {
+                'state': "Состояние пользователя сброшено.",
+            }
+        except StudentModule.DoesNotExist:
+            return {
+                'state': "{Модуль для указанного пользователя не существует."
+            }
 
     @XBlock.handler
     def check_by_academy(self, request, suffix=''):
@@ -169,6 +189,34 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
         return Response("OK")
 
+    @XBlock.handler
+    def get_grades_data(self, data, suffix=''):
+        assert self._is_staff()
+        grades_objects = StudentModule.objects.filter(module_state_key=self.location)
+        grades = [['id', 'username', 'score', 'max_grade', 'state', 'created', 'modified']]
+        for grade in grades_objects:
+            try:
+                history = json.loads(grade.state).get('history')
+                has_history = True
+            except Exception:
+                history = None
+                has_history = False
+            grades.append([
+                grade.id,
+                grade.student.username if grade.student is not None else None,
+                self._get_points(history)*self.weight if has_history else None,
+                self.weight,
+                grade.state,
+                grade.created,
+                grade.modified,
+            ])
+        return HTTPOk(
+            body="\n".join(["\t".join(["" if j is None else str(j) for j in i]) for i in grades]),
+            headers={
+                'Content-Disposition': 'attachment; filename=grades_%s.tsv' % self.scope_ids.usage_id.block_id,
+                'Content-Type': 'text/tab-separated-values'
+            })
+
     def _update_state(self, state, tasks_progress, new_score):
         """
         state - current state from StudentModule
@@ -193,6 +241,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
     @XBlock.json_handler  # Manual pressing
     def check_lab(self, data, suffix):
+
         if self.course_name == '' or self.course_element == '' or self.iteration_id == '':
             context = self._get_student_context()
             context['error'] = 'Course Name, Course Element and Iteration ID fields are required!'
@@ -203,7 +252,24 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
             context['error'] = 'It seems to be requested in studio!'
             return json.dumps(context)
 
-        user_login = self.runtime.get_real_user(self.runtime.anonymous_student_id).username
+        staff_check = False
+        if data.get('user_login') is not None:
+            assert self._is_staff()
+            staff_check = True
+            user_login = data.get('user_login')
+        else:
+            user_login = self.runtime.get_real_user(self.runtime.anonymous_student_id).username
+
+        student_module = None
+        if staff_check:
+            usage_key = UsageKey.from_string(self.location.__unicode__())
+            try:
+                student_module = StudentModule.objects.get(student__username=user_login,
+                                                           module_state_key=usage_key)
+            except StudentModule.DoesNotExist:
+                return {
+                    "error": "Пользовательский модуль не найден"
+                }
 
         try:
             ext_response = self._do_external_request(user_login, self.iteration_id)
@@ -219,14 +285,24 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
             if int(self.course_element) == element['course_number']:
                 points_earned = round(float(element['tasks_completed']) / element['tasks_total'], 2)
                 if points_earned > 0:
-                    self.history = json.dumps(self._update_state(self.history, element['tasks_progress'], points_earned))
+                    if not staff_check:
+                        self.history = json.dumps(
+                            self._update_state(self.history, element['tasks_progress'], points_earned)
+                        )
+                    else:
+                        state = json.loads(student_module.state)
+                        state['history'] = json.dumps(
+                            self._update_state(state.get('history', '[]'), element['tasks_progress'], points_earned)
+                        )
+                        student_module.state = json.dumps(state)
+                        student_module.save()
 
                 break
 
         return json.dumps(self._get_student_context())
 
-    def _get_points(self):
-        array = json.loads(self.history)
+    def _get_points(self, history=None):
+        array = json.loads(self.history if history is not None else history)
         if len(array) > 0:
             history = array[-1]
             return history[history.keys()[0]]
@@ -274,6 +350,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                 'lab_url': self.lab_url,
                 'api_url': self.api_url
             }, indent=2)
+            context['get_grades_data'] = self.runtime.handler_url(self, 'get_grades_data', thirdparty=True).replace('_noauth', '')
 
         return context
 
