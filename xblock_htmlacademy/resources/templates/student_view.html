@@ -8,24 +8,32 @@
 
         <div><%= meta.text %></div>
 
-        {% if allow_checking %}
-            <div class="action">
-                <input type="button" class="ant-start-lab" value="Выполнить" />
-                <input type="button" class="ant-check-lab" value="Проверить" title="Нажмите, если Ваш рейтинг не обновился после прохождения задания"/>
-            </div>
 
-            <div class="htmlacademy-error">Возникла ошибка при обновлении Вашего рейтинга:
-                <span class="htmlacademy-error-text"></span>.<br />
-                Пожалуйста, сообщите нам об этом на <a href="mailto:openedu@cde.ifmo.ru">openedu@cde.ifmo.ru.</a>
-                Приносим свои извинения за возможные неудобства.
-            </div>
+        {% if not is_studio %}
+            {% if allow_checking %}
+                <div class="action">
+                    <input type="button" class="ant-start-lab" value="Выполнить" />
+                    <input type="button" class="ant-check-lab" value="Проверить" title="Нажмите, если Ваш рейтинг не обновился после прохождения задания"/>
+                </div>
+
+                <div class="htmlacademy-error">Возникла ошибка при обновлении Вашего рейтинга:
+                    <span class="htmlacademy-error-text"></span>.<br />
+                    Пожалуйста, сообщите нам об этом на <a href="mailto:openedu@cde.ifmo.ru">openedu@cde.ifmo.ru.</a>
+                    Приносим свои извинения за возможные неудобства.
+                </div>
+            {% endif %}
+        {% else %}
+            <p><b><i>Элементы управления недоступны при редактирования блока в Студии.</i></b></p>
         {% endif %}
+
+
     </script>
 
     <div class="ifmo-xblock-content problem">
         {{student_state}}
     </div>
     {% if is_staff %}
+        {% if not is_studio %}
 
 
     <div class="wrap-instructor-info">
@@ -65,6 +73,8 @@
         </div><br />
         <pre id="staff-info-data"><%= data %></pre>
     </script>
+
+        {% endif %}
     {% endif %}
 
 </section>
