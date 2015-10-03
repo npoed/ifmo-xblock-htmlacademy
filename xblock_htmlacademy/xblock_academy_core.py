@@ -302,7 +302,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         return json.dumps(self._get_student_context())
 
     def _get_points(self, history=None):
-        array = json.loads(self.history if history is not None else history)
+        array = json.loads(self.history if history is None else history)
         if len(array) > 0:
             history = array[-1]
             return history[history.keys()[0]]
