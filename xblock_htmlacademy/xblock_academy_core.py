@@ -394,7 +394,9 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         return True
 
     def _allow_checking(self, dt):
-        dt = dt.replace(tzinfo=pytz.utc)
+        # HTML Academy возращает время по МСК без указания таймзоны, поэтому приведём руками
+        tz = pytz.timezone('Europe/Moscow')
+        dt = tz.localize(dt.replace(tzinfo=None))
         due = get_extended_due_date(self)
         if due is not None:
             return dt < due
