@@ -1,12 +1,23 @@
-.htmlacademy-error {
+.htmlacademy-message {
     margin-top: 10px;
     border-radius: 4px;
     display: none;
+    padding: 8px 35px 8px 14px;
+}
+
+.htmlacademyy-message-error {
     border: 1px solid #eed3d7;
     color: #b94a48;
     background-color: #f2dede;
-    padding: 8px 35px 8px 14px;
 }
+
+.htmlacademy-message-warning {
+    border: 1px solid #c09853;
+    color: #c09853;
+    background-color: #fcf8e3;
+    display: block;
+}
+
 
 .htmlacademy-error-text {
     display: inline !important;

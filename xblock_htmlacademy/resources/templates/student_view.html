@@ -10,18 +10,28 @@
 
 
         {% if not is_studio %}
-            {% if allow_checking %}
+
+                {% if not allow_checking %}
+                <div class="htmlacademy-message htmlacademy-message-warning">
+                    Время, отведённое на выполнение интерактивного упражнения, истекло. Вы можете его пройти, но баллы не будут добавлены к общему рейтингу.
+                </div>
+                {% endif %}
+
                 <div class="action">
+                    {% if allow_checking %}
                     <input type="button" class="ant-start-lab" value="Выполнить" />
                     <input type="button" class="ant-check-lab" value="Проверить" title="Нажмите, если Ваш рейтинг не обновился после прохождения задания"/>
+                    {% else %}
+                    <input type="button" class="ant-start-lab" value="Просмотреть" />
+                    {% endif %}
                 </div>
 
-                <div class="htmlacademy-error">Возникла ошибка при обновлении Вашего рейтинга:
+                <div class="htmlacademy-message htmlacademy-message-error">Возникла ошибка при обновлении Вашего рейтинга:
                     <span class="htmlacademy-error-text"></span>.<br />
                     Пожалуйста, сообщите нам об этом на <a href="mailto:openedu@cde.ifmo.ru">openedu@cde.ifmo.ru.</a>
                     Приносим свои извинения за возможные неудобства.
                 </div>
-            {% endif %}
+
         {% else %}
             <p><b><i>Элементы управления недоступны при редактирования блока в Студии.</i></b></p>
         {% endif %}
