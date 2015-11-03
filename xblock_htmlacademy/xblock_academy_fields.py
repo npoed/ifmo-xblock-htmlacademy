@@ -1,5 +1,5 @@
 from xblock.fields import Scope, String, Float, Boolean
-
+from xblock_htmlacademy.settings import CONFIGURATION as CONFIG
 
 class HTMLAcademyXBlockFields(object):
 
@@ -39,19 +39,19 @@ class HTMLAcademyXBlockFields(object):
     lab_url = String(
         display_name="URL to open lab",
         scope=Scope.settings,
-        default="https://npoed.htmlacademy.ru/{name}/course/{element}"
+        default=CONFIG.get('LAB_URL')
     )
 
     api_url = String(
         display_name="URL to get into API",
         scope=Scope.settings,
-        default="https://npoed.htmlacademy.ru/api/getprogress?username={login}&module_id={iterationID}&hash={hash}"
+        default=CONFIG.get('API_URL')
     )
 
     secret_key = String(
         display_name="Key for hashing API request",
         scope=Scope.settings,
-        default="f*n,2Ch"
+        default=CONFIG.get('SECRET')
     )
 
     """
