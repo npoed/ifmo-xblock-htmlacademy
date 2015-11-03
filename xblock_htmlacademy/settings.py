@@ -1,4 +1,4 @@
-SELECTED_CONFIGURATION = 'default'
+SELECTED_CONFIGURATION = 'ifmo'
 
 CONFIGURATIONS = {
     'npoed': {
