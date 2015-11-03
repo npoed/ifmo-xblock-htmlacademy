@@ -1,4 +1,4 @@
-SELECTED_CONFIGURATION = 'default'
+SELECTED_CONFIGURATION = 'npoed'
 
 CONFIGURATIONS = {
     'npoed': {
