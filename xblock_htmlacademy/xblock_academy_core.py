@@ -8,7 +8,7 @@ from xblock.fragment import Fragment
 from xblock_academy_fields import HTMLAcademyXBlockFields
 from xblock_academy_resources import XBlockResources
 from xmodule.util.duedate import get_extended_due_date
-from lms.djangoapps.courseware.models import StudentModule
+from courseware.models import StudentModule
 from opaque_keys.edx.keys import UsageKey
 from webob.exc import HTTPOk
 import hashlib
