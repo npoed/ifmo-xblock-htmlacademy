@@ -1,5 +1,6 @@
 from xblock.fields import Scope, String, Float, Boolean
-from xblock_htmlacademy.settings import CONFIGURATION as CONFIG
+from xblock_htmlacademy.settings import DefaultedDescriptor, CONFIGURATION
+
 
 class HTMLAcademyXBlockFields(object):
 
@@ -36,22 +37,25 @@ class HTMLAcademyXBlockFields(object):
         default=0,
     )
 
-    lab_url = String(
+    lab_url = DefaultedDescriptor(
+        base_class=String,
         display_name="URL to open lab",
         scope=Scope.settings,
-        default=CONFIG.get('LAB_URL')
+        default=CONFIGURATION.get('LAB_URL')
     )
 
-    api_url = String(
+    api_url = DefaultedDescriptor(
+        base_class=String,
         display_name="URL to get into API",
         scope=Scope.settings,
-        default=CONFIG.get('API_URL')
+        default=CONFIGURATION.get('API_URL')
     )
 
-    secret_key = String(
+    secret_key = DefaultedDescriptor(
+        base_class=String,
         display_name="Key for hashing API request",
         scope=Scope.settings,
-        default=CONFIG.get('SECRET')
+        default=CONFIGURATION.get('SECRET')
     )
 
     """

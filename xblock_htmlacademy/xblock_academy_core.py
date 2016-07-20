@@ -8,7 +8,7 @@ from xblock.fragment import Fragment
 from xblock_academy_fields import HTMLAcademyXBlockFields
 from xblock_academy_resources import XBlockResources
 from xmodule.util.duedate import get_extended_due_date
-from lms.djangoapps.courseware.models import StudentModule
+from courseware.models import StudentModule
 from opaque_keys.edx.keys import UsageKey
 from webob.exc import HTTPOk
 import hashlib
@@ -85,9 +85,9 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         self.course_element = data.get('course_element')
         self.description = data.get('content')
         self.weight = data.get('points')
-        self.lab_url = data.get('lab_url')
-        self.api_url = data.get('api_url')
-        self.secret_key = data.get('secret_key')
+        self.lab_url = data.get('lab_url').strip() or None
+        self.api_url = data.get('api_url').strip() or None
+        self.secret_key = data.get('secret_key').strip() or None
         return '{}'
 
     @XBlock.handler
