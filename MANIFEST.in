@@ -1,3 +1,2 @@
 include README.md
-recursive-include xblock_htmlacademy/resources * 
-
+recursive-include xblock_htmlacademy/resources *
