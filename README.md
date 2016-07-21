@@ -1,5 +1,13 @@
 # ifmo-xblock-htmlacademy
 
+## Requirements
+
+Add the following line in `requirements.txt`:
+
+```
+-e git+https://github.com/openeduITMO/ifmo-xblock-htmlacademy@v4.1#egg=ifmo-xblock-htmlacademy==4.1
+```
+
 ## Installation
 
 Add following parameters in `lms.env.json`:
