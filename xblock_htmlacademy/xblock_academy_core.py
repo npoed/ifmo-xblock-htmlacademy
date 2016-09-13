@@ -289,6 +289,10 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
                         self.history = json.dumps(
                             self._update_state(self.history, element['tasks_progress'], points_earned)
                         )
+                        self.runtime.publish(self, 'grade', {
+                            'value': self.get_score()['score'],
+                            'max_value': self.get_score()['total'],
+                        })
                     else:
                         state = json.loads(student_module.state)
                         state['history'] = json.dumps(
