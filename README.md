@@ -1,13 +1,15 @@
 # ifmo-xblock-htmlacademy
 
-XBlock for edx-platfrom implementing interconnection between Open edX and HTML Academy.
+XBlock for edx-platform implementing interconnection between Open edX and HTML Academy.
 
 ## Requirements
+
+XBlock is compatible with the 9-th openEdx named release _Ironwood_, and most likely in not compatible with any other.
 
 Add the following line in `requirements.txt`:
 
 ```
--e git+https://github.com/openeduITMO/ifmo-xblock-htmlacademy@v4.1#egg=ifmo-xblock-htmlacademy==4.1
+-e git+https://github.com/openeduITMO/ifmo-xblock-htmlacademy@v9.0#egg=ifmo-xblock-htmlacademy==9.0
 ```
 
 ## Installation
