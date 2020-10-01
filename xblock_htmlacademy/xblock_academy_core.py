@@ -107,7 +107,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     @XBlock.json_handler
     def staff_info(self, data, suffix=''):
         assert self._is_staff()
-        from lms.djangoapps.courseware.models import StudentModule
+        from courseware.models import StudentModule
         outputs = "{}"
         if data != {}:
             if 'user_login' in data:
@@ -127,7 +127,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     @XBlock.json_handler
     def reset_user_data(self, data, suffix=''):
         assert self._is_staff()
-        from lms.djangoapps.courseware.models import StudentModule
+        from courseware.models import StudentModule
         user_login = data.get('user_login')
         try:
             module = StudentModule.objects.get(module_state_key=self.location,
@@ -161,7 +161,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
 
         r = UsageKey.from_string(self.location.__unicode__())
         s = None
-        from lms.djangoapps.courseware.models import StudentModule
+        from courseware.models import StudentModule
         try:
             s = StudentModule.objects.get(student__username=login,
                           module_state_key=r)
@@ -194,7 +194,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
     @XBlock.handler
     def get_grades_data(self, data, suffix=''):
         assert self._is_staff()
-        from lms.djangoapps.courseware.models import StudentModule
+        from courseware.models import StudentModule
         grades_objects = StudentModule.objects.filter(module_state_key=self.location)
         grades = [['id', 'username', 'score', 'max_grade', 'state', 'created', 'modified']]
         for grade in grades_objects:
@@ -263,7 +263,7 @@ class HTMLAcademyXBlock(HTMLAcademyXBlockFields, XBlockResources, XBlock):
         else:
             user_login = self.runtime.get_real_user(self.runtime.anonymous_student_id).username
 
-        from lms.djangoapps.courseware.models import StudentModule
+        from courseware.models import StudentModule
         student_module = None
         if staff_check:
             usage_key = UsageKey.from_string(self.location.__unicode__())
