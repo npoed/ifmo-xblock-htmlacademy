@@ -4,6 +4,6 @@
 
 ## Contributors
 
-- Dmitrii Kopyov
+- Dmitrii Kopylov
 - Nikita Vasiliev <dnfletter@gmail.com>
 - Serge Pokhodyaev <snp@z9.ru>
