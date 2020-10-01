@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='ifmo-xblock-htmlacademy',
-    version='4.1',
+    version='9.0',
     install_requires=[
         'django',
         'path.py',
@@ -21,8 +21,8 @@ setup(
     description='Package provides ifmo courses specific modules.',
     long_description=README,
     url='http://www.de.ifmo.ru/',
-    author='Dmitry Ivanyushin',
-    author_email='d.ivanyushin@cde.ifmo.ru',
+    author='Dmitrii Ivaniushin',
+    author_email='defance@gmail.com',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
